@@ -5,7 +5,7 @@ seg = "38082.seg"
 
 def SLIC(img, max_iter=10):
     #設定SLIC初始化設定
-    slic = cv2.ximgproc.createSuperpixelSLIC(img) 
+    slic = cv2.ximgproc.createSuperpixelSLIC(img, region_size=10) 
     slic.iterate(max_iter)
     mask_slic = slic.getLabelContourMask() #建立超像素的遮罩，mask_slic數值為1
     label_slic = slic.getLabels()        #獲得超像素的標籤
@@ -28,7 +28,6 @@ def gt_berkely_labels(gt_file):
     label_list.append([int(obj), int(x), int(y1), int(y2)])
 
   gt = np.full((height, width), -1)
-
   for [obj, x, y1, y2] in label_list:
     gt[x, y1:y2+1] = obj
   return gt
