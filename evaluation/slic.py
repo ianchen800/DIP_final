@@ -167,7 +167,7 @@ class SLIC(object):
         # cv2.imwrite(name, contour)
         return contour
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # 10 iterations suffices for most images
     # When using the CIELAB color space, m can be [1, 40].
     # k=4096, 512, 
