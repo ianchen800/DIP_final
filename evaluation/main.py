@@ -29,7 +29,6 @@ if __name__ == "__main__":
       start_time = time.time()
 
       # labels = SLIC(img)
-      print(img.shape)
       p = slic.SLIC(img, k=4096, m=40, max_iter=10)
       p.init_clusters()
       p.move_clusters()
