@@ -41,6 +41,7 @@ class SLIC(object):
         # print(f'S = {self.S}')
 
         self.clusters = []
+        self.clustter_amount = -1
 
         # Set label l(i) = -1 for each pixel i.
         self.label = np.full((self.h, self.w), -1)
@@ -53,12 +54,17 @@ class SLIC(object):
     def init_clusters(self):
         for i in range(self.S//2, self.h, self.S):
             for j in range(self.S//2, self.w, self.S):
+                if j == self.w:
+                    print("error")
                 self.clusters.append(Cluster(self.lab[i,j][0],
                                              self.lab[i,j][1],
                                              self.lab[i,j][2], i, j))
+        self.clustter_amount=len(self.clusters)
     # why?
     def get_gradient(self, i, j, pad_img, sobel_mask_Gx, sobel_mask_Gy):
+        
         region = pad_img[i:i+3, j:j+3]
+        
         intensity = np.sqrt(region[:,:,0]**2+region[:,:,1]**2+region[:,:,2]**2)
         #print(intensity.shape)
         gradient_Gx = (intensity*sobel_mask_Gx).sum()
@@ -73,10 +79,13 @@ class SLIC(object):
         sobel_mask_Gy = np.array([[1,2,1],[0,0,0],[-1,-2,-1]])/4
         for cluster in self.clusters:
             cluster_gradient = self.get_gradient(cluster.i, cluster.j, pad_img, sobel_mask_Gx,sobel_mask_Gy)
-            for di in range(-1, 2):
-                for dj in range(-1, 2):
-                    _i = cluster.i + di
-                    _j = cluster.j + dj
+            upmost = max(cluster.i-1, 0)
+            downmost = min(cluster.i+2, self.h)
+            leftmost = max(cluster.j-1, 0)
+            rightmost = min(cluster.j+2, self.w)
+            
+            for _i in range(upmost, downmost):
+                for _j in range(leftmost, rightmost):
                     new_gradient = self.get_gradient(_i, _j, pad_img, sobel_mask_Gx,sobel_mask_Gy)
                     if new_gradient < cluster_gradient:
                         cluster.update(self.lab[_i][_j][0], self.lab[_i][_j][1], self.lab[_i][_j][2], _i, _j)
@@ -104,37 +113,24 @@ class SLIC(object):
             label[D<=dis_region] = cluster.no
             self.label[upmost:downmost, leftmost:rightmost] = label
         
+        
+        
         pixels = []
-        for i in range(self.k):
+        
+        for i in range(self.clustter_amount):
             pixels.append([])
+            
+        
         for i in range(self.h):
             for j in range(self.w):
+                #print(i, j, self.label.shape, self.label[i,j], len(pixels))
                 pixels[self.label[i,j]].append((i,j))
     
-        for i in range(self.k):
+        for i in range(self.clustter_amount):
             if len(pixels[i])==0:
                 print('error', i)
             self.clusters[i].pixels = pixels[i]
                 
-            
- 
-            """for i in range(upmost, downmost):
-                for j in range(leftmost, rightmost):
-                    l, a, b = self.lab[i,j]
-
-                    #dc = ((l-cluster.l)**2 + (a-cluster.a)**2 + (b-cluster.b)**2)**0.5
-                    #ds = ((i-cluster.i)**2 + (j-cluster.j)**2)**0.5
-                    D = ((dc/self.m)**2 + (ds/self.S)**2)**0.5
-                    if D < self.dis[i,j]:
-                        self.dis[i,j] = D
-
-                        # set l(i) = k
-                        # 如果這個label已經存在其他cluster裡面了，就要把舊的刪掉
-                        if self.label[i,j] != -1:
-                            self.clusters[self.label[i,j]].pixels.remove((i,j))
-                        self.label[i,j] = cluster.no
-                        cluster.pixels.append((i, j))"""
-
     def update_cluster(self):
         for cluster in self.clusters:
             sum_l = sum_a = sum_b = sum_i = sum_j = 0
@@ -154,7 +150,12 @@ class SLIC(object):
         for i in trange(self.max_iter):
             self.assignment()
             self.update_cluster()
-
+        for i in range(self.h):
+            for j in range(self.w):
+               continue
+               #leftmost
+               #if label[i,j]!=label[i-1, j]
+                
         image_arr = np.copy(self.lab)
         for cluster in self.clusters:
             for p in cluster.pixels:
@@ -200,14 +201,14 @@ if __name__ == '__main__':
     # 10 iterations suffices for most images
     # When using the CIELAB color space, m can be [1, 40].
     # k=4096, 512, 
-    p = SLIC(path='./Lenna.png', k=1024, m=40, max_iter=5)
+    p = SLIC(path='./test_img2.jpeg', k=1024, m=40, max_iter=10)
     p.init_clusters()
     p.move_clusters()
     print(f'finish move_clusters')
     #p.assignment()
     p.repeat()
     label = p.label
-    # print(label)
+    #print(label)
     contour = p.draw_contour()
 
     # opencv 的 SLIC
