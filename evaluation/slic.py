@@ -135,7 +135,17 @@ class SLIC(object):
         for i in trange(self.max_iter):
             self.assignment()
             self.update_cluster()
-
+        pad_label = np.pad(self.label, 1, 'constant', constant_values=-1)
+        for i in range(self.h):
+            for j in range(self.w):
+                if pad_label[i+1,j+1]!=pad_label[i, j+1] and pad_label[i+1,j+1]!=pad_label[i+1, j] and pad_label[i+1,j+1]!=pad_label[i+2, j+1] and pad_label[i+1,j+1]!=pad_label[i+1, j+2]:
+                    dis = []
+                    for k in [pad_label[i, j+1], pad_label[i+1, j], pad_label[i+2, j+1], pad_label[i+1, j+2]]:
+                        if k == -1:
+                            continue
+                        else:
+                            dis.append((i-self.clusters[k].i)**2+(j-self.clusters[k].j)**2)
+                    self.label[i,j] = dis.index(min(dis))
         image_arr = np.copy(self.lab)
         for cluster in self.clusters:
             for p in cluster.pixels:
