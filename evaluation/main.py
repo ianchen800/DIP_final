@@ -6,6 +6,8 @@ import time
 from readData import gt_berkely_labels, SLIC
 from evaluation import boundaryRecall, underSegError
 
+import slic 
+
 if __name__ == "__main__":
   
   dataset = sys.argv[1]
@@ -25,7 +27,15 @@ if __name__ == "__main__":
       img = cv2.imread(os.path.join(data_dir, img_file))
       
       start_time = time.time()
-      labels = SLIC(img)
+
+      # labels = SLIC(img)
+      print(img.shape)
+      p = slic.SLIC(img, k=4096, m=40, max_iter=10)
+      p.init_clusters()
+      p.move_clusters()
+      p.repeat()
+      labels = p.label
+
       time_list.append(time.time() - start_time)
       
       br = boundaryRecall(labels, gt_label_mat, 2)
@@ -34,11 +44,10 @@ if __name__ == "__main__":
       useg_err_list.append(us_err)
 
   print('================== evaluation result ==================')
+  print('k=4096, m=40, max_iter=10')
   print('DataSet:                     |', sys.argv[1])
   print('Total Images                 |', len(br_list))
   print('Avg Boundary Recall          |', sum(br_list)/len(br_list))    
   print('Avg Under Segmentation Error |', sum(useg_err_list)/len(useg_err_list))    
   print('Avg Processing Time          |', sum(time_list)/len(time_list))  
   print('=======================================================')  
-    
-     
