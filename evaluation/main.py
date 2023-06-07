@@ -19,7 +19,9 @@ if __name__ == "__main__":
     print("Processing Berkely Dataset...")
     data_dir = sys.argv[2]
     seg_dir = sys.argv[3]
-      
+    k = int(sys.argv[4])
+    m=int(sys.argv[5])
+    
     for img_file in os.listdir(data_dir):
       seg_file = os.path.join(seg_dir, img_file[:-3] + 'seg')
 
@@ -29,7 +31,7 @@ if __name__ == "__main__":
       start_time = time.time()
 
       # labels = SLIC(img)
-      p = slic.SLIC(img, k=4096, m=40, max_iter=10)
+      p = slic.SLIC(img, k=k, m=m, max_iter=10)
       p.init_clusters()
       p.move_clusters()
       p.repeat()
@@ -43,7 +45,7 @@ if __name__ == "__main__":
       useg_err_list.append(us_err)
 
   print('================== evaluation result ==================')
-  print('k=4096, m=40, max_iter=10')
+  print(f"k={k}, m={m}, max_iter=10")
   print('DataSet:                     |', sys.argv[1])
   print('Total Images                 |', len(br_list))
   print('Avg Boundary Recall          |', sum(br_list)/len(br_list))    
